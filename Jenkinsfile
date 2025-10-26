@@ -33,7 +33,7 @@ pipeline {
                     credentialsId: 'tomcat-deploy-creds'
                 )],
                 contextPath: "/${env.APP_NAME}",
-                war: "**/target/${env.APP_NAME}.war"
+                war: "**/target/${env.APP_NAME}*.war"   // Match any WAR with version
             }
         }
     }
