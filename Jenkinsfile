@@ -11,7 +11,6 @@ pipeline {
         TOMCAT_HOME = 'C:\\apache-tomcat-9.0.XX' // Replace with your Tomcat path
         WAR_NAME = 'EventManagementSystem.war'
         CONTEXT_PATH = '/EventManagementSystem'
-        TOMCAT_CRED = 'tomcat-deploy-creds' // Jenkins credentials ID
     }
 
     stages {
@@ -41,16 +40,14 @@ pipeline {
             }
         }
 
-        // 4️⃣ Deploy to Tomcat
+        // 4️⃣ Deploy to Tomcat manually
         stage('Deploy to Tomcat') {
             steps {
                 echo "Deploying WAR to Tomcat..."
-                deploy adapters: [tomcat(
-                    url: 'http://localhost:8080/manager/text',
-                    credentialsId: "${TOMCAT_CRED}"
-                )],
-                contextPath: "${CONTEXT_PATH}",
-                war: "**/target/*.war"
+                bat """
+                copy /Y target\\%WAR_NAME% %TOMCAT_HOME%\\webapps\\%WAR_NAME%
+                """
+                echo "WAR deployed! Please restart Tomcat if auto-deploy is disabled."
             }
         }
     }
