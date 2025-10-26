@@ -1,41 +1,45 @@
 pipeline {
     agent any
 
+    tools {
+        maven 'M3'       // Maven installation name in Jenkins
+        jdk 'JDK21'      // Your configured JDK in Jenkins
+    }
+
     environment {
         APP_NAME = 'EventManagementSystem'
     }
 
-    tools {
-        maven 'M3'  // Use the Maven installation you configured in Jenkins
-        jdk 'JDK21' // Make sure you have JDK configured in Jenkins (optional)
-    }
-
     stages {
+        // 1️⃣ Checkout Code from GitHub
         stage('Checkout') {
             steps {
                 git branch: 'main', url: 'https://github.com/Snehap1104/ise_2.git'
             }
         }
 
+        // 2️⃣ Build with Maven
         stage('Build') {
             steps {
-                sh "mvn clean package"   // Linux/Mac
-                // bat "mvn clean package" // Windows, uncomment if using Windows agent
+                // Use Windows batch command
+                bat "mvn clean package"
             }
         }
 
+        // 3️⃣ Deploy to Tomcat
         stage('Deploy to Tomcat') {
             steps {
                 deploy adapters: [tomcat(
-                    url: 'http://localhost:8080/manager/text', 
+                    url: 'http://localhost:8080/manager/text',
                     credentialsId: 'tomcat-deploy-creds'
-                )], 
-                contextPath: "/EventManagementSystem", 
+                )],
+                contextPath: "/EventManagementSystem",
                 war: "**/target/EventManagementSystem.war"
             }
         }
     }
 
+    // 4️⃣ Post Actions
     post {
         success {
             echo "Deployment Successful!"
