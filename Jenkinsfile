@@ -8,19 +8,21 @@ pipeline {
 
     environment {
         APP_NAME = 'EventManagementSystem'
-        TOMCAT_HOME = 'C:\\Program Files\\Apache Software Foundation\\Tomcat 11.0'
+        TOMCAT_HOME = 'C:\\Program Files\\Apache Software Foundation\\Tomcat 11.0' // Correct Tomcat path
         WAR_NAME = 'EventManagementSystem.war'
         CONTEXT_PATH = '/EventManagementSystem'
         TOMCAT_CRED = 'tomcat-deploy-creds' // Jenkins credentials ID
     }
 
     stages {
+        // 1️⃣ Checkout code
         stage('Checkout') {
             steps {
                 git branch: 'main', url: 'https://github.com/Snehap1104/ise_2.git'
             }
         }
 
+        // 2️⃣ Clean old deployment
         stage('Clean Old Deployment') {
             steps {
                 echo "Cleaning old WAR and deployment..."
@@ -31,6 +33,7 @@ pipeline {
             }
         }
 
+        // 3️⃣ Build WAR with Maven
         stage('Build') {
             steps {
                 echo "Building WAR..."
@@ -38,15 +41,16 @@ pipeline {
             }
         }
 
+        // 4️⃣ Deploy to Tomcat
         stage('Deploy to Tomcat') {
             steps {
                 echo "Deploying WAR to Tomcat..."
                 bat """
-                REM Create webapps folder if it doesn't exist
-                IF NOT EXIST "%TOMCAT_HOME%\\webapps" mkdir "%TOMCAT_HOME%\\webapps"
-
-                REM Copy WAR file
-                copy /Y target\\EventManagementSystem-1.0-SNAPSHOT.war "%TOMCAT_HOME%\\webapps\\EventManagementSystem.war"
+                copy /Y target\\EventManagementSystem-1.0-SNAPSHOT.war "%TOMCAT_HOME%\\webapps\\%WAR_NAME%"
+                
+                REM Stop and start Tomcat to deploy the WAR
+                "%TOMCAT_HOME%\\bin\\shutdown.bat"
+                "%TOMCAT_HOME%\\bin\\startup.bat"
                 """
             }
         }
@@ -54,7 +58,7 @@ pipeline {
 
     post {
         success {
-            echo "✅ Deployment Successful!"
+            echo "✅ Deployment Successful! Access at http://localhost:8080%CONTEXT_PATH%"
         }
         failure {
             echo "❌ Deployment Failed!"
