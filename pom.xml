@@ -1,74 +1,50 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0"
-         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 
-                             http://maven.apache.org/xsd/maven-4.0.0.xsd">
-    <modelVersion>4.0.0</modelVersion>
+pipeline {
+    agent any
 
-    <groupId>com.eventmgmt</groupId>
-    <artifactId>EventManagementSystem</artifactId>
-    <version>1.0-SNAPSHOT</version>
-    <packaging>war</packaging>
+    environment {
+        // Set JAVA_HOME and MAVEN_HOME if needed
+        JAVA_HOME = "C:\\Program Files\\Java\\jdk-21"
+        PATH = "${env.JAVA_HOME}\\bin;C:\\apache-maven-3.9.2\\bin;${env.PATH}"
+        
+        // Tomcat details
+        TOMCAT_USER = 'admin'
+        TOMCAT_PASSWORD = 'admin123'
+        TOMCAT_URL = 'http://localhost:8080/manager/text'
+        WAR_NAME = 'EventManagementSystem.war'
+    }
 
-    <name>EventManagementSystem</name>
+    stages {
 
-    <properties>
-        <maven.compiler.source>21</maven.compiler.source>
-        <maven.compiler.target>21</maven.compiler.target>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    </properties>
+        stage('Checkout SCM') {
+            steps {
+                git branch: 'main',
+                    url: 'https://github.com/Snehap1104/ise_2.git'
+            }
+        }
 
-    <dependencies>
-        <!-- Jakarta Servlet API -->
-        <dependency>
-            <groupId>jakarta.servlet</groupId>
-            <artifactId>jakarta.servlet-api</artifactId>
-            <version>6.0.0</version>
-            <scope>provided</scope>
-        </dependency>
+        stage('Build') {
+            steps {
+                bat 'mvn clean package -U'
+            }
+        }
 
-        <!-- JSTL -->
-        <dependency>
-            <groupId>javax.servlet.jsp.jstl</groupId>
-            <artifactId>jstl-api</artifactId>
-            <version>1.2</version>
-        </dependency>
-        <dependency>
-            <groupId>org.glassfish.web</groupId>
-            <artifactId>jstl-impl</artifactId>
-            <version>1.2</version>
-        </dependency>
+        stage('Deploy to Tomcat') {
+            steps {
+                script {
+                    // Deploy WAR to Tomcat manager
+                    def warPath = "target\\${env.WAR_NAME}"
+                    bat """curl --upload-file ${warPath} --user ${env.TOMCAT_USER}:${env.TOMCAT_PASSWORD} "${env.TOMCAT_URL}/deploy?path=/EventManagementSystem&update=true" """
+                }
+            }
+        }
+    }
 
-        <!-- MySQL Connector (fixed version) -->
-        <dependency>
-            <groupId>mysql</groupId>
-            <artifactId>mysql-connector-java</artifactId>
-            <version>8.0.34</version>
-        </dependency>
-    </dependencies>
-
-    <build>
-        <finalName>EventManagementSystem</finalName>
-        <plugins>
-            <!-- Compiler Plugin -->
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.13.0</version>
-                <configuration>
-                    <source>${maven.compiler.source}</source>
-                    <target>${maven.compiler.target}</target>
-                </configuration>
-            </plugin>
-
-            <!-- WAR Plugin -->
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-war-plugin</artifactId>
-                <version>3.3.2</version>
-                <configuration>
-                    <failOnMissingWebXml>false</failOnMissingWebXml>
-                </configuration>
-            </plugin>
-        </plugins>
-    </build>
-</project>
+    post {
+        success {
+            echo 'Deployment Successful!'
+        }
+        failure {
+            echo 'Deployment Failed!'
+        }
+    }
+}
