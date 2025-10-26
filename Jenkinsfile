@@ -21,7 +21,6 @@ pipeline {
         // 2️⃣ Build with Maven
         stage('Build') {
             steps {
-                // Use Windows batch command
                 bat "mvn clean package"
             }
         }
@@ -29,23 +28,22 @@ pipeline {
         // 3️⃣ Deploy to Tomcat
         stage('Deploy to Tomcat') {
             steps {
-                deploy adapters: [tomcat(
+                deploy adapters: [tomcat9(
                     url: 'http://localhost:8080/manager/text',
                     credentialsId: 'tomcat-deploy-creds'
                 )],
-                contextPath: "/EventManagementSystem",
-                war: "**/target/EventManagementSystem.war"
+                contextPath: "/${env.APP_NAME}",
+                war: "**/target/${env.APP_NAME}.war"
             }
         }
     }
 
-    // 4️⃣ Post Actions
     post {
         success {
-            echo "Deployment Successful!"
+            echo "✅ Deployment Successful!"
         }
         failure {
-            echo "Deployment Failed!"
+            echo "❌ Deployment Failed!"
         }
     }
 }
