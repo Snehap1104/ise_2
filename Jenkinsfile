@@ -45,7 +45,7 @@ pipeline {
             steps {
                 echo "Deploying WAR to Tomcat..."
                 bat """
-                copy /Y target\\%WAR_NAME% %TOMCAT_HOME%\\webapps\\%WAR_NAME%
+                copy /Y target\\EventManagementSystem-1.0-SNAPSHOT.war %TOMCAT_HOME%\\webapps\\%APP_NAME%.war
                 """
                 echo "WAR deployed! Please restart Tomcat if auto-deploy is disabled."
             }
