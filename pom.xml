@@ -1,50 +1,38 @@
-pipeline {
-    agent any
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 
+                             http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
 
-    environment {
-        // Set JAVA_HOME and MAVEN_HOME if needed
-        JAVA_HOME = "C:\\Program Files\\Java\\jdk-21"
-        PATH = "${env.JAVA_HOME}\\bin;C:\\apache-maven-3.9.2\\bin;${env.PATH}"
-        
-        // Tomcat details
-        TOMCAT_USER = 'admin'
-        TOMCAT_PASSWORD = 'admin123'
-        TOMCAT_URL = 'http://localhost:8080/manager/text'
-        WAR_NAME = 'EventManagementSystem.war'
-    }
+    <groupId>com.eventmgmt</groupId>
+    <artifactId>EventManagementSystem</artifactId>
+    <version>1.0-SNAPSHOT</version>
+    <packaging>war</packaging>
 
-    stages {
+    <dependencies>
+        <!-- MySQL connector -->
+        <dependency>
+            <groupId>mysql</groupId>
+            <artifactId>mysql-connector-java</artifactId>
+            <version>8.0.33</version>
+        </dependency>
 
-        stage('Checkout SCM') {
-            steps {
-                git branch: 'main',
-                    url: 'https://github.com/Snehap1104/ise_2.git'
-            }
-        }
+        <!-- Servlet API -->
+        <dependency>
+            <groupId>jakarta.servlet</groupId>
+            <artifactId>jakarta.servlet-api</artifactId>
+            <version>6.0.0</version>
+            <scope>provided</scope>
+        </dependency>
+    </dependencies>
 
-        stage('Build') {
-            steps {
-                bat 'mvn clean package -U'
-            }
-        }
-
-        stage('Deploy to Tomcat') {
-            steps {
-                script {
-                    // Deploy WAR to Tomcat manager
-                    def warPath = "target\\${env.WAR_NAME}"
-                    bat """curl --upload-file ${warPath} --user ${env.TOMCAT_USER}:${env.TOMCAT_PASSWORD} "${env.TOMCAT_URL}/deploy?path=/EventManagementSystem&update=true" """
-                }
-            }
-        }
-    }
-
-    post {
-        success {
-            echo 'Deployment Successful!'
-        }
-        failure {
-            echo 'Deployment Failed!'
-        }
-    }
-}
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-war-plugin</artifactId>
+                <version>3.3.2</version>
+            </plugin>
+        </plugins>
+    </build>
+</project>
